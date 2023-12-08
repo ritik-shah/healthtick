@@ -93,7 +93,7 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
         _remainingTime--;
         if (_remainingTime == 0) {
           _timer?.cancel();
-
+          player.stop();
           _moveToNextPage();
         }
       });
