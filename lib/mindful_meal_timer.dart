@@ -64,10 +64,14 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
   int _interval = 1;
   bool _isSoundOn = true; // Toggle this for sound on/off
   final player = AudioPlayer();
+  // final audioCache = AudioCache();
+
 
   @override
   void initState() {
     super.initState();
+    // player.play(AssetSource('countdown_tick.mp3'));
+    // audioCache.load('countdown_tick.mp3');
   }
 
   @override
@@ -78,6 +82,10 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingTime == 6 && _isSoundOn) {
+        player.play(AssetSource('countdown_tick.mp3'));
+
+      }
       setState(() {
         _remainingTime--;
         if (_remainingTime == 0) {
@@ -88,10 +96,7 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
 
       _updateLineColor();
 
-      if (_remainingTime == 60 && _isSoundOn) {
 
-        player.play('countdown_tick.mp3' as Source);
-      }
     });
   }
 
