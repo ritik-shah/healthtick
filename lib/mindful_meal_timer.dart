@@ -84,12 +84,16 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingTime == 6 && _isSoundOn) {
         player.play(AssetSource('countdown_tick.mp3'));
-
+        player.setReleaseMode(ReleaseMode.loop);
+        if (_remainingTime == 1) {
+          player.stop();
+        }
       }
       setState(() {
         _remainingTime--;
         if (_remainingTime == 0) {
           _timer?.cancel();
+
           _moveToNextPage();
         }
       });
