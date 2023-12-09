@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Mindful Meal Timer',
-        color: Colors.grey,
+      color: Colors.grey,
       theme: ThemeData.dark().copyWith(
         primaryColor: Colors.green,
         hintColor: Colors.lightGreen,
@@ -64,14 +64,27 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
   int _interval = 1;
   bool _isSoundOn = true; // Toggle this for sound on/off
   final player = AudioPlayer();
-  // final audioCache = AudioCache();
+  late List<Color> lineColors;
+  _MindfulMealTimerState() {
+    // Initialize lineColors starting from the top position (12'o clock)
+    lineColors = List<Color>.generate(
+      _totalLines,
+          (index) {
+        // Calculate the adjusted index based on the starting position
+        int adjustedIndex = (index + _totalLines - (_totalLines ~/ 4)) % _totalLines;
+        return adjustedIndex < (_totalLines ~/ 61) ? Colors.grey : Colors.green;
+      },
+    );
+  }
+
+
+
 
 
   @override
   void initState() {
     super.initState();
-    // player.play(AssetSource('countdown_tick.mp3'));
-    // audioCache.load('countdown_tick.mp3');
+    player.play(AssetSource('countdown_tick.mp3'));
   }
 
   @override
@@ -89,18 +102,7 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
           player.stop();
         }
       }
-      setState(() {
-        _remainingTime--;
-        if (_remainingTime == 0) {
-          _timer?.cancel();
-          player.stop();
-          _moveToNextPage();
-        }
-      });
-
       _updateLineColor();
-
-
     });
   }
 
@@ -147,9 +149,47 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
         _interval = 1;
       }
     }
+
+    _updateLineColors(lineIndex);
+  }
+  void resetLineColors() {
+    setState(() {
+      // Re-initialize lineColors based on your desired logic
+      lineColors = List<Color>.generate(
+        _totalLines,
+            (index) {
+          // Calculate the adjusted index based on the starting position
+          int adjustedIndex = (index + _totalLines - (_totalLines ~/ 4)) % _totalLines;
+          return adjustedIndex < (_totalLines ~/ 61) ? Colors.grey : Colors.green;
+        },
+      );
+    });
+  }
+  void _updateLineColors(int lineIndex) {
+    setState(() {
+      _remainingTime--;
+
+      lineIndex = ((_totalLines * _remainingTime) / 60).round();
+
+      lineColors = List<Color>.generate(
+        _totalLines,
+            (index) {
+          return index < lineIndex ? Colors.green : Colors.grey;
+        },
+      );
+    });
+
+    if (_remainingTime == 0) {
+      _timer?.cancel();
+      player.stop();
+      _moveToNextPage();
+    }
   }
 
+
+
   void _moveToNextPage() {
+    resetLineColors();
     int nextPage = _pageController.page?.toInt() ?? 0;
     nextPage++;
     if (nextPage < 3) {
@@ -192,14 +232,12 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
           ),
           Positioned(
             top: 20,
-
             left: 0,
             right: 0,
             child: Center(
               child: _buildPageIndicator(),
-            )
+            ),
           ),
-
         ],
       ),
     );
@@ -219,16 +257,15 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
           Center(
             child: Text(
               pageMessagestop[pageIndex],
-              style: const TextStyle(fontSize: 18,color: Colors.grey),
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
             ),
           ),
           Center(
             child: Text(
               pageMessages[pageIndex],
-              style: const TextStyle(fontSize: 18,color: Colors.grey),
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
             ),
           ),
-
           const SizedBox(height: 20),
           Stack(
             alignment: Alignment.center,
@@ -251,33 +288,32 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
               ),
               CustomPaint(
                 painter: TimerPainter(_remainingTime, _totalLines,
-                    interval: _interval),
+                    interval: _interval, lineColors: lineColors),
                 child: Container(
                   width: 200,
                   height: 200,
                   alignment: Alignment.center,
-                  child : Column
-                  (
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                    Text(
-                      '${(_remainingTime ~/ 60).toString().padLeft(2, '0')}:${(_remainingTime % 60).toString().padLeft(2, '0')}',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                      Text(
+                        '${(_remainingTime ~/ 60).toString().padLeft(2, '0')}:${(_remainingTime % 60).toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
                       ),
-                    ),
-                  const Text(
-                  'minutes remaining',
-                  style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
+                      const Text(
+                        'minutes remaining',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
                   ),
-                  )
-                  ],
                 ),
-    )
               ),
             ],
           ),
@@ -285,7 +321,6 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-
               Switch(
                 activeColor: Colors.white,
                 inactiveThumbColor: Colors.white,
@@ -297,7 +332,6 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
                   });
                 },
               ),
-
             ],
           ),
           const Row(
@@ -312,23 +346,13 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
                 top: 18,
                 left: 14,
                 child: SizedBox(
-
                   height: 50,
                   width: MediaQuery.of(context).size.width * 0.78,
                   child: Container(
-
-                  decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-
-                    color: const Color(0xff90b7a0),
-
-
-                  ),
-
-
-
-
-
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: const Color(0xff90b7a0),
+                    ),
                   ),
                 ),
               ),
@@ -356,10 +380,8 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
                   ),
                 ),
               ),
-
             ],
           ),
-
           const SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
@@ -413,21 +435,9 @@ class TimerPainter extends CustomPainter {
   final int seconds;
   int totalLines;
   int interval;
-  late List<Color> lineColors;
+  List<Color> lineColors;
 
-  TimerPainter(this.seconds, this.totalLines, {this.interval = 1}) {
-    updateLineColor();
-  }
-
-  void updateLineColor() {
-    //int lineIndex = ((totalLines * seconds) / 60).round();
-    lineColors = List<Color>.generate(
-      totalLines,
-          (index) {
-        return index % interval == 0 ? Colors.green : Colors.grey;
-      },
-    );
-  }
+  TimerPainter(this.seconds, this.totalLines, {this.interval = 1, required this.lineColors});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -439,7 +449,8 @@ class TimerPainter extends CustomPainter {
     double angle = -2 * pi * (seconds / 60);
 
     for (int lineIndex = 0; lineIndex < totalLines; lineIndex++) {
-      double i = -2 * pi * (lineIndex / totalLines);
+      double i = -pi / 2 - 2 * pi * (lineIndex / totalLines);
+
 
       double x1, y1, x2, y2;
 
@@ -464,8 +475,7 @@ class TimerPainter extends CustomPainter {
     paint
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8
-      ..color = lineColors.last; // Set color based on the last line
-
+      ..color = Colors.green; // Set color based on the last line
     canvas.drawArc(
       Rect.fromCircle(center: Offset(centerX, centerY), radius: radius),
       -pi / 2,
@@ -473,8 +483,6 @@ class TimerPainter extends CustomPainter {
       false,
       paint,
     );
-
-    updateLineColor();
   }
 
   @override
