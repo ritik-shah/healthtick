@@ -84,7 +84,7 @@ class _MindfulMealTimerState extends State<MindfulMealTimer> {
   @override
   void initState() {
     super.initState();
-    player.play(AssetSource('countdown_tick.mp3'));
+    // player.play(AssetSource('countdown_tick.mp3'));
   }
 
   @override
